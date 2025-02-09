@@ -6,8 +6,11 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -20,6 +23,11 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     private Set<Point> selectedTiles = new HashSet<>();
     private Point selectionStart = null;
     private Point selectionEnd = null;
+    private File lastImageDirectory = null;
+    private File lastMaskDirectory = null;
+
+
+    private static final String CONFIG_FILE = "config.properties";
 
     private final int TILE_SIZE = 8;
     private final Color GRID_COLOR = new Color(192, 192, 192);
@@ -32,11 +40,43 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     };
 
 
+
+    // Load last used directories
+    private void loadConfig() {
+        Properties properties = new Properties();
+        try (FileInputStream fis = new FileInputStream(CONFIG_FILE)) {
+            properties.load(fis);
+            String imagePath = properties.getProperty("lastImageDirectory");
+            String maskPath = properties.getProperty("lastMaskDirectory");
+
+            if (imagePath != null) lastImageDirectory = new File(imagePath);
+            if (maskPath != null) lastMaskDirectory = new File(maskPath);
+
+        } catch (IOException e) {
+            System.out.println("No previous config found. Defaulting to null.");
+        }
+    }   
+
+    // Save last used directories
+    private void saveConfig() {
+        Properties properties = new Properties();
+        if (lastImageDirectory != null)
+            properties.setProperty("lastImageDirectory", lastImageDirectory.getAbsolutePath());
+        if (lastMaskDirectory != null)
+            properties.setProperty("lastMaskDirectory", lastMaskDirectory.getAbsolutePath());
+
+        try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE)) {
+            properties.store(fos, "Last Used Directories");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }    
+
     public ImagePanel() {
         setBackground(Color.GRAY);
         setPreferredSize(new Dimension(800, 600));
             
-        
+        loadConfig(); 
 
         
         addKeyListener(new KeyAdapter() {
@@ -103,9 +143,14 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     }
 
     public void loadImage() {
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = new JFileChooser(lastImageDirectory);
+        fileChooser.setDialogTitle("Load Image PNG");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG Files (*.png)", "png"));
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
+            lastImageDirectory = file.getParentFile();
+            saveConfig();
+
             try {
                 BufferedImage loadedImage = ImageIO.read(file);
 
@@ -360,12 +405,15 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
             return;
         }
     
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = new JFileChooser(lastImageDirectory);
         fileChooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
     
         if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
             try {
                 File outputFile = fileChooser.getSelectedFile();
+                lastMaskDirectory = outputFile.getParentFile(); 
+                saveConfig();
+
                 if (!outputFile.getName().toLowerCase().endsWith(".png")) {
                     outputFile = new File(outputFile.getAbsolutePath() + ".png");
                 }
@@ -454,17 +502,35 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         }
         else
         {
-            JFileChooser fileChooser = new JFileChooser();
+            JFileChooser fileChooser = new JFileChooser(lastMaskDirectory);
+            fileChooser.setDialogTitle("Save Mask");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Mask Files (*.msk)", "msk"));
+
+            
             if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                FileHandler.saveMask(mask, fileChooser.getSelectedFile().getAbsolutePath());
+                File selectedFile = fileChooser.getSelectedFile();
+                
+                // Ensure the file has the ".msk" extension
+                if (!selectedFile.getName().toLowerCase().endsWith(".msk")) {
+                    selectedFile = new File(selectedFile.getAbsolutePath() + ".msk");
+                }                
+                lastMaskDirectory = selectedFile.getParentFile(); 
+                saveConfig();
+                FileHandler.saveMask(mask, selectedFile.getAbsolutePath());
             }
         }
     }
 
     public void loadMask() {
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = new JFileChooser(lastMaskDirectory);
+        fileChooser.setDialogTitle("Load Mask");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Mask Files (*.msk)", "msk"));
+
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            mask = FileHandler.loadMask(fileChooser.getSelectedFile().getAbsolutePath());
+            File selectedFile = fileChooser.getSelectedFile();
+            lastMaskDirectory = selectedFile.getParentFile();
+            saveConfig();
+            mask = FileHandler.loadMask(selectedFile.getAbsolutePath());
             repaint();
         }
     }
