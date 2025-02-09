@@ -28,6 +28,31 @@ public class ImageHandler {
         exportedImage = null;
     }
 
+
+    
+    public static String getErrorMessage(int returnCode)
+    {
+        String msg = new String();
+
+        switch(returnCode)
+        {
+            case ImageHandler.ERR_IMAGE_NOT_INDEXED->
+            msg="Invalid Image : The image must be indexed (palette-based) ";
+
+            case ImageHandler.ERR_IMAGE_MORE_THAN_16_COLORS->
+            msg="Invalid Image : The image uses more than the first 16 colors of the palette ";
+
+            case ImageHandler.ERR_IMAGE_NOT_8BPP->
+            msg="Invalid Image : The image must be 8bpp ";
+
+            case ImageHandler.ERR_NO_IMAGE_NOR_MASK_LOADED_YET->
+            msg="No image or mask loaded.";
+        } 
+        return msg; 
+    }
+
+
+
     public int setImage(BufferedImage loadedImage) 
     {        
         int returnCode = isValidIndexedImage(loadedImage);

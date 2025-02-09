@@ -118,24 +118,9 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
                 revalidate();
                 repaint();             
             }
-            else
-            {
-                switch(returnCode)
-                {
-                    case ImageHandler.ERR_IMAGE_NOT_INDEXED->
-                    this.messageHandler= new MessageHandler(returnCode,"Invalid Image : The image must be indexed (palette-based)", JOptionPane.ERROR_MESSAGE);
-        
-                    case ImageHandler.ERR_IMAGE_MORE_THAN_16_COLORS->
-                    this.messageHandler= new MessageHandler(returnCode,"Invalid Image : The image uses more than the first 16 colors of the palette", JOptionPane.ERROR_MESSAGE);
-        
-                    case ImageHandler.ERR_IMAGE_NOT_8BPP->
-                    this.messageHandler= new MessageHandler(returnCode,"Invalid Image : The image must be 8bpp", JOptionPane.ERROR_MESSAGE);
-        
-                    case ImageHandler.ERR_NO_IMAGE_NOR_MASK_LOADED_YET->
-                    this.messageHandler= new MessageHandler(returnCode,"No image or mask loaded.", JOptionPane.ERROR_MESSAGE);  
-        
-                }                
-                showMessage();
+            else{
+                this.messageHandler= new MessageHandler(returnCode,ImageHandler.getErrorMessage(returnCode), JOptionPane.ERROR_MESSAGE);
+                showMessage();            
             }
         }
     }

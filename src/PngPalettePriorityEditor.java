@@ -62,30 +62,45 @@ public class PngPalettePriorityEditor extends JFrame {
 
     private void showInstructions() {
         String instructionsText = """
-        --- Controls & Shortcuts ---
+        - - - - - - - - HOW TO USE IT ? - - - - - - - - - - - - - - - - 
+
+        1] Load an image
+            Note : the image must be an indexed PNG (8bpp / only first 16 colors used)
+            
+        2] Edit the priority and palette index via the grid mask and hotkeys (H/L and 0-4 keys) 
+
+        3] Save your mask (if you like to reuse it next time, it's not binded to the image file)
+
+        4] Export Image : it will apply the mask pal & priority informations to the loaded image
+
+
+        - - - - - - - CONTROLS & SHORTCUTS - - - - - - - - - - - - - - 
         
-        Selection:
-        - Left Click & Drag: Select multiple tiles (lasso selection)
-        - CTRL + Click: Add multiple selections
+        * Zoom & Navigation:
+          - SHIFT + Mouse Wheel: Zoom in/out
+          - Arrow Keys: Move the view
         
-        Editing Tiles:
-        - Right Click: Open properties menu to change palette/priority
-        - H: Set selected tiles to Priority 1 (High)
-        - L: Set selected tiles to Priority 0 (Low)
-        - 0, 1, 2, 3: Change the palette of selected tiles
-        
-        Zoom & Navigation:
-        - SHIFT + Mouse Wheel: Zoom in/out
-        - Arrow Keys: Move the view
-        - Scrollbars: Scroll horizontally and vertically
-        
-        Mask Operations:
-        - Load Mask: Load a mask file
-        - Save Mask: Save the current mask
-        
-        Image Operations:
-        - Load Image: Open an image file
-        - Export Image: Save the modified image with mask effects
+        * Selection:
+          - Left Click & Drag: Select multiple tiles (lasso selection)
+          - CTRL + Left Click: Add multiple selection areas
+
+        * Editing Tiles:
+          You can right-click on tiles to edit their properties,
+          But you may prefer directly use these hotkeys :
+           - H: Set selected tiles to Priority 1 (High)
+           - L: Set selected tiles to Priority 0 (Low)
+           - 0, 1, 2, 3: Change the palette index of selected tiles
+
+
+        - - - - - - - BATCH MODE - - - - - - - - - - - - - - - - - - - 
+
+        Run the editor from the command line:
+           java -jar PPPE4SGDK.jar --b <image_path> <mask_path> <export_path>
+
+        The image must be an indexed PNG (8bpp / only first 16 colors used)
+        The mask file must be a valid .msk file, made previously using the GUI
+            
+        ===========================================            
         """;
 
         JTextArea textArea = new JTextArea(instructionsText);
@@ -130,13 +145,20 @@ public static void main(String[] args)
         try 
         {
             ImageHandler imageHandler = new ImageHandler();
-            imageHandler.setImage(ImageIO.read(new File(imagePath)));
+            int returnCode = imageHandler.setImage(ImageIO.read(new File(imagePath)));
+            if(returnCode > 0){
+                System.out.println(ImageHandler.getErrorMessage(returnCode));
+                return;
+            }  
 
             Mask mask = AppFileHandler.loadMask(maskPath); // Charge le mask
             imageHandler.setMask(mask);
             imageHandler.applyMask();
-            AppFileHandler.writeOutputImage(imageHandler.getExportedImage(), new File(exportPath));
-            System.out.println("Export successful: " + exportPath);
+            
+            if(imageHandler.getExportedImage()!=null){
+                AppFileHandler.writeOutputImage(imageHandler.getExportedImage(), new File(exportPath));
+                System.out.println("Export successful: " + exportPath);
+            }
 
         } catch (IOException e) {
             System.err.println("Error in batch mode: " + e.getMessage());
