@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class PngPalettePriorityEditor extends JFrame {
@@ -97,7 +100,51 @@ public class PngPalettePriorityEditor extends JFrame {
     }
     
     
-    public static void main(String[] args) {
+public static void main(String[] args) 
+{
+    if (args.length == 4 && args[0].equals("--b")) 
+    {
+        String imagePath = args[1];
+        String maskPath = args[2];
+        String exportPath = args[3];
+
+
+        System.out.println("Batch mode detected. Validating inputs...");
+
+        // Vérification des fichiers
+        File imageFile = new File(imagePath);
+        File maskFile = new File(maskPath);
+
+        if (!imageFile.exists() || !imageFile.isFile()) {
+            System.err.println("Error: Image file not found: " + imagePath);
+            System.exit(1);
+        }
+
+        if (!maskFile.exists() || !maskFile.isFile()) {
+            System.err.println("Error: Mask file not found: " + maskPath);
+            System.exit(1);
+        }
+
+
+        System.out.println("Batch mode detected. Processing...");
+        try 
+        {
+            ImageHandler imageHandler = new ImageHandler();
+            imageHandler.setImage(ImageIO.read(new File(imagePath)));
+
+            Mask mask = AppFileHandler.loadMask(maskPath); // Charge le mask
+            imageHandler.setMask(mask);
+            imageHandler.applyMask();
+            AppFileHandler.writeOutputImage(imageHandler.getExportedImage(), new File(exportPath));
+            System.out.println("Export successful: " + exportPath);
+
+        } catch (IOException e) {
+            System.err.println("Error in batch mode: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.exit(0);
+    } else {
         SwingUtilities.invokeLater(() -> new PngPalettePriorityEditor().setVisible(true));
     }
+}
 }
