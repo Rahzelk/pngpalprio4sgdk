@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+
 public class PngPalettePriorityEditor extends JFrame {
     private ImagePanel imagePanel;
 
@@ -14,23 +15,11 @@ public class PngPalettePriorityEditor extends JFrame {
     private final JMenu optionsMenu;
     private final JMenu viewMenu;
     
-
     private boolean showGrid = true;
     private boolean showPaletteIndex = true;
     private boolean viewPaletteZero = false;
     
     
-    public void allowMenuChoice()
-    {
-        maskMenu.setEnabled(true);
-        optionsMenu.setEnabled(true);
-        viewMenu.setEnabled(true);
-
-        JMenuItem exportImage = new JMenuItem("Export Image");
-        exportImage.addActionListener(e -> imagePanel.exportImage());
-        imageMenu.add(exportImage);
-    }
-
     public PngPalettePriorityEditor()
     {
         setTitle("PNG Palette and Priority Editor for SGDK");
@@ -38,7 +27,7 @@ public class PngPalettePriorityEditor extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Initialize image panel
+        // Initialize image panel = main panel for this App
         imagePanel = new ImagePanel(this);
         imagePanel.addMouseWheelListener(imagePanel);
         
@@ -46,23 +35,24 @@ public class PngPalettePriorityEditor extends JFrame {
             JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, 
             JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
-        add(scrollPane);
+        add(scrollPane); //enable scrollbars 
 
+        // this change listener prevent too much repaint, making the app being responsive
         scrollPane.getViewport().addChangeListener(new ChangeListener() {
-            private final Timer timer = new Timer(25, e -> imagePanel.doScrollbarUpdate()); // Attendre 200ms avant repaint
+            private final Timer timer = new Timer(50, e -> imagePanel.doScrollbarUpdate());
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                timer.restart(); // Redémarre le timer à chaque mouvement
+                timer.restart(); 
             }
         });
 
-        // Create menu
+        // Create menu bar
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
 
-        // Menu "Image"
+        // MENU "Image"
         imageMenu = new JMenu("Image");
         menuBar.add(imageMenu);
 
@@ -72,7 +62,7 @@ public class PngPalettePriorityEditor extends JFrame {
 
         
 
-        // Menu "Mask"
+        // MENU "Mask"
         maskMenu = new JMenu("Mask");
         menuBar.add(maskMenu);
         maskMenu.setEnabled(false);
@@ -85,7 +75,7 @@ public class PngPalettePriorityEditor extends JFrame {
         saveMask.addActionListener(e -> imagePanel.saveMask());
 
 
-        // Menu options
+        // MENU "Options"
         optionsMenu = new JMenu("Options");
         optionsMenu.setEnabled(false);
         menuBar.add(optionsMenu);
@@ -95,7 +85,7 @@ public class PngPalettePriorityEditor extends JFrame {
         optionsMenu.add(maskColorsItem);
 
         
-
+        // MENU "View"
         viewMenu = new JMenu("View");
         viewMenu.setEnabled(false);
         // Option "View Grid"
@@ -105,31 +95,30 @@ public class PngPalettePriorityEditor extends JFrame {
             imagePanel.repaint();
         });
 
-        // Option "View Palette Index Number"
+        // option "View Palette Index Number"
         JCheckBoxMenuItem viewPaletteItem = new JCheckBoxMenuItem("View Palette Index", showPaletteIndex);
         viewPaletteItem.addActionListener(e -> {
             showPaletteIndex = viewPaletteItem.isSelected();
             imagePanel.repaint();
         });
 
-        // Option "View Palette Index Number"
+        // option "View Palette Index Number"
         JCheckBoxMenuItem viewPaletteZeroItem = new JCheckBoxMenuItem("View Palette 0", viewPaletteZero);
         viewPaletteZeroItem.addActionListener(e -> {
             viewPaletteZero = viewPaletteZeroItem.isSelected();
             imagePanel.repaint();
         });
 
-        // Ajouter les options au menu "View"
+        // add options to "View"
         viewMenu.add(viewGridItem);
         viewMenu.add(viewPaletteItem);
         viewMenu.add(viewPaletteZeroItem);
 
-
-        // Ajouter le menu à la barre de menu
         menuBar.add(viewMenu);
 
     
-        // Menu "Help"
+
+        // MENU "Help"
         JMenu helpMenu = new JMenu("Help");
         menuBar.add(helpMenu);
 
@@ -137,11 +126,14 @@ public class PngPalettePriorityEditor extends JFrame {
         helpMenu.add(instructions);
         instructions.addActionListener(e -> showInstructions());
 
+
         setupStatusBar();
     }
 
 
-        // Barre d'état
+    
+    // STATUS BAR
+    //
     private JLabel statusBar;
 
     private void setupStatusBar() {
@@ -150,15 +142,48 @@ public class PngPalettePriorityEditor extends JFrame {
         getContentPane().add(statusBar, BorderLayout.SOUTH);
     }
 
-    // Mettre à jour le texte de la barre d'état
     public void updateStatusBar(String text) {
         statusBar.setText(text);
     }
 
 
+    // UI  
+    // enable editing menu only after user load an image
+    public void allowMenuChoice()
+    {
+        maskMenu.setEnabled(true);
+        optionsMenu.setEnabled(true);
+        viewMenu.setEnabled(true);
+
+        JMenuItem exportImage = new JMenuItem("Export Image");
+        exportImage.addActionListener(e -> imagePanel.exportImage());
+        imageMenu.add(exportImage);
+    }
+
+
+
+    // GETTER
+    //
+    public boolean showGrid() {
+        return showGrid;
+    }
+
+    public boolean showPaletteIndex() {
+        return showPaletteIndex;
+    }
+
+    public boolean viewPaletteZero() {
+        return viewPaletteZero;
+    }
+
+
+
+    // HELP WINDOW
+    //
     private void showInstructions() 
     {
         String instructionsText = """
+        
         - - - - - - - - HOW TO USE IT ? - - - - - - - - - - - - - - - - 
 
         1] Load an image
@@ -215,6 +240,8 @@ public class PngPalettePriorityEditor extends JFrame {
         JOptionPane.showMessageDialog(this, scrollPane, "Instructions", JOptionPane.INFORMATION_MESSAGE);
     }
     
+
+
         
     @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) 
@@ -279,15 +306,5 @@ public class PngPalettePriorityEditor extends JFrame {
         }
     }
 
-    public boolean showGrid() {
-        return showGrid;
-    }
 
-    public boolean showPaletteIndex() {
-        return showPaletteIndex;
-    }
-
-    public boolean viewPaletteZero() {
-        return viewPaletteZero;
-    }
 }
