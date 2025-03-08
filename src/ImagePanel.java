@@ -14,7 +14,9 @@ import javax.swing.plaf.basic.BasicButtonUI;
 public class ImagePanel extends JPanel implements MouseWheelListener  {
     private final ImageHandler imageHandler;
     private final PngPalettePriorityEditor mainWindow;
+
     private double zoom;
+
     private final Set<Point> selectedTiles = new HashSet<>();
     private Point selectionStart = null;
     private Point selectionEnd = null;
@@ -35,9 +37,6 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     
     private final Color GRID_PALETTE_INDEX_COLORS_TILE[] = new Color[4];
     private Color GRID_PALETTE_INDEX_COLORS_TEXT;
-
-
-
 
 
     public ImagePanel(PngPalettePriorityEditor mainFrame) {
@@ -669,6 +668,7 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         {
             imageHandler.setMask(previousMask);
             repaint();
+            selectedTiles.clear();
         }
     }
 

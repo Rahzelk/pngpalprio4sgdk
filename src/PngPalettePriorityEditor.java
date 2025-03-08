@@ -161,23 +161,6 @@ public class PngPalettePriorityEditor extends JFrame {
     }
 
 
-
-    // GETTER
-    //
-    public boolean showGrid() {
-        return showGrid;
-    }
-
-    public boolean showPaletteIndex() {
-        return showPaletteIndex;
-    }
-
-    public boolean viewPaletteZero() {
-        return viewPaletteZero;
-    }
-
-
-
     // HELP WINDOW
     //
     private void showInstructions() 
@@ -241,69 +224,92 @@ public class PngPalettePriorityEditor extends JFrame {
     }
     
 
+    
 
-        
+    // GETTER
+    //
+    public boolean showGrid() {
+        return showGrid;
+    }
+
+    public boolean showPaletteIndex() {
+        return showPaletteIndex;
+    }
+
+    public boolean viewPaletteZero() {
+        return viewPaletteZero;
+    }
+
+
+
+
+
+    // MAIN - launching GUI & manage batch mode
     @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) 
     {
-        if (args.length == 4 && args[0].equals("--b")) 
+        if(!args[0].equals("--b")) 
+         SwingUtilities.invokeLater(() -> new PngPalettePriorityEditor().setVisible(true));
+
+        System.out.println("Batch mode detected...");
+        if (args.length < 4) 
         {
-            String imagePath = args[1];
-            String maskPath = args[2];
-            String exportPath = args[3];
-
-
-            System.out.println("Batch mode detected. Validating inputs...");
-
-            // Vérification des fichiers
-            File imageFile = new File(imagePath);
-            File maskFile = new File(maskPath);
-
-            if (!imageFile.exists() || !imageFile.isFile()) {
-                System.err.println("Error: Image file not found: " + imagePath);
-                System.exit(1);
-            }
-
-            if (!maskFile.exists() || !maskFile.isFile()) {
-                System.err.println("Error: Mask file not found: " + maskPath);
-                System.exit(1);
-            }
-
-
-            System.out.println("Batch mode detected. Processing...");
-            try 
-            {
-                ImageHandler imageHandler = new ImageHandler();
-                int returnCode = imageHandler.setImage(ImageIO.read(new File(imagePath)));
-                if(returnCode > 0){
-                    System.out.println(ImageHandler.getErrorMessage(returnCode));
-                    return;
-                }  
-
-                Mask mask = AppFileHandler.loadMask(maskPath); // Charge le mask
-                imageHandler.setMask(mask);
-                imageHandler.applyMask();
-                
-                if(imageHandler.getExportedImage()!=null){
-                    if(AppFileHandler.writeOutputImage(imageHandler.getExportedImage(), new File(exportPath))==AppFileHandler.ERR_WRITE_EXPORT_IMAGE)
-                    {
-                        System.out.println("Error while writing the export file !");
-                        return;
-                    }
-                    else
-                    {
-                        System.out.println("Export successful: " + exportPath);
-                    }
-                }
-
-            } catch (IOException e) {
-                System.err.println("Error in batch mode: " + e.getMessage());
-                e.printStackTrace();
-            }
-            System.exit(0);
-        } else {
-            SwingUtilities.invokeLater(() -> new PngPalettePriorityEditor().setVisible(true));
+            System.out.println("Missing parameters : please check the syntax below ");
+            System.out.println("java -jar PPPE4SGDK.jar --b <image_path> <mask_path> <export_path>");
+            return;
         }
+
+        String imagePath = args[1];
+        String maskPath = args[2];
+        String exportPath = args[3];
+
+        System.out.println("Validating inputs...");
+
+        // Check files path
+        File imageFile = new File(imagePath);
+        File maskFile = new File(maskPath);
+
+        if (!imageFile.exists() || !imageFile.isFile()) {
+            System.err.println("Error: Image file not found: " + imagePath);
+            System.exit(1);
+        }
+
+        if (!maskFile.exists() || !maskFile.isFile()) {
+            System.err.println("Error: Mask file not found: " + maskPath);
+            System.exit(1);
+        }
+
+        System.out.println("Processing...");
+        try 
+        {
+            ImageHandler imageHandler = new ImageHandler();
+            int returnCode = imageHandler.setImage(ImageIO.read(new File(imagePath)));
+            if(returnCode > 0){
+                System.out.println(ImageHandler.getErrorMessage(returnCode));
+                return;
+            }  
+
+            Mask mask = AppFileHandler.loadMask(maskPath); // Charge le mask
+            imageHandler.setMask(mask);
+            imageHandler.applyMask();
+            
+            if(imageHandler.getExportedImage()!=null){
+                if(AppFileHandler.writeOutputImage(imageHandler.getExportedImage(), new File(exportPath))==AppFileHandler.ERR_WRITE_EXPORT_IMAGE)
+                {
+                    System.out.println("Error while writing the output PNG file !");
+                    return;
+                }
+                else
+                {
+                    System.out.println("Done, output saved to " + exportPath);
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error in batch mode: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.exit(0);
     }
 
 
