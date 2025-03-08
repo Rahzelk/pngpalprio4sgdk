@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -15,6 +16,8 @@ public class AppFileHandler {
 
     public static File lastImageDirectory = null;
     public static File lastMaskDirectory = null;
+
+
     private static final String CONFIG_FILE = "config.properties";
 
 
@@ -96,21 +99,28 @@ public class AppFileHandler {
         }
     }   
 
-    // Save last used directories
-    public static void saveConfig() {
-        Properties properties = new Properties();
-        if (lastImageDirectory != null)
-            properties.setProperty("lastImageDirectory", lastImageDirectory.getAbsolutePath());
-        if (lastMaskDirectory != null)
-            properties.setProperty("lastMaskDirectory", lastMaskDirectory.getAbsolutePath());
+        // Save last used directories without overwriting other properties
+        public static void saveConfig() {
+            Properties properties = new Properties();
 
-        try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE)) {
-            properties.store(fos, "Last Used Directories");
-        } catch (IOException e) {
-            e.printStackTrace();
+            // Charger les propriétés existantes
+            try (FileInputStream fis = new FileInputStream(CONFIG_FILE)) {
+                properties.load(fis);
+            } catch (IOException ignored) {}
+
+            // Mettre à jour les propriétés sans effacer les anciennes
+            if (lastImageDirectory != null)
+                properties.setProperty("lastImageDirectory", lastImageDirectory.getAbsolutePath());
+            if (lastMaskDirectory != null)
+                properties.setProperty("lastMaskDirectory", lastMaskDirectory.getAbsolutePath());
+
+            // Sauvegarder le fichier sans écraser les autres configurations
+            try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE)) {
+                properties.store(fos, "Application Configuration");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-    }    
-
 
     public static BufferedImage selectInputImage(Component panel)
     {
@@ -170,5 +180,62 @@ public class AppFileHandler {
         }        
 
         return SUCCESS;
+    }
+
+
+
+    public static void saveColorsToConfig(Color[] colors) {
+        Properties config = new Properties();
+        
+        try (FileInputStream input = new FileInputStream(CONFIG_FILE)) {
+            config.load(input);
+        } catch (IOException ignored) {}
+    
+
+        String[] keys = {
+                "Array Border", "Selection Lasso", "Selected Tile", 
+                "High Priority Border", "Palette Text",            
+                "Palette 0", "Palette 1", "Palette 2", "Palette 3"
+            };
+    
+
+        for (int i = 0; i < colors.length; i++) {
+            config.setProperty(keys[i], ImagePanel.colorToHex(colors[i]));
+        }
+    
+        try (FileOutputStream output = new FileOutputStream(CONFIG_FILE)) {
+            config.store(output, "Mask Colors Configuration");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }    
+
+
+    public static  Color[]  loadColorsFromConfig() {
+        Properties config = new Properties();
+    
+        try (FileInputStream input = new FileInputStream(CONFIG_FILE)) {
+            config.load(input);
+        } catch (IOException ignored) {}
+    
+
+
+        String[] keys = {
+            "Array Border", "Selection Lasso", "Selected Tile", 
+            "High Priority Border", "Palette Text",            
+            "Palette 0", "Palette 1", "Palette 2", "Palette 3"
+        };
+    
+        
+        Color[] defaultColors = ImagePanel.getDefaultColors();
+    
+        for (int i = 0; i < keys.length; i++) {
+            String hex = config.getProperty(keys[i]);
+            if (hex != null) {
+                defaultColors[i] = ImagePanel.hexToColor(hex);
+            }
+        }
+
+        return defaultColors;
     }
 }

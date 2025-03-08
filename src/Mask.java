@@ -7,6 +7,8 @@ public class Mask  implements Serializable {
     private final int height;
     private final List<Tile> tiles;
 
+
+
     public Mask(int width, int height) {
         this.width = width;
         this.height = height;
@@ -16,6 +18,20 @@ public class Mask  implements Serializable {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 tiles.add(new Tile(x, y, 0, 0)); // Default: palette 0, priority 0
+            }
+        }
+    }
+
+    public Mask(Mask mask) {
+        this.width = mask.width;
+        this.height = mask.height;
+        tiles = new ArrayList<>();
+
+        // Initialize the mask with default tiles
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Tile tile = mask.getTile(x, y);
+                tiles.add(new Tile(x, y, tile.getPalette(), tile.getPriority()));
             }
         }
     }
@@ -59,9 +75,10 @@ public class Mask  implements Serializable {
     }
     public void setTileProperties(int x, int y, int palette, int priority) {
         Tile tile = getTile(x, y);
-        if (tile != null) {
+        if (tile != null) {      
             tile.setPalette(palette);
             tile.setPriority(priority);
         }
     }
+ 
 }

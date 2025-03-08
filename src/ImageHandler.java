@@ -21,7 +21,8 @@ public class ImageHandler {
     private BufferedImage exportedImage;
     private Mask mask;
 
-    
+
+
     public ImageHandler() {
         image = null;
         mask = null;
@@ -181,6 +182,7 @@ public class ImageHandler {
     public Mask getMask() {
         return mask;
     }
+
 
 
     public BufferedImage getImage() {
