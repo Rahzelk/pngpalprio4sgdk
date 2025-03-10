@@ -16,6 +16,7 @@ PNG above 1024x1024 tends to be laggy...and higher resolution may become unusabl
 
 
 ## Installation & Usage
+Need Java 8 (compiled with jdk1.8.0_441)
 
 ### GUI Mode : 
 
