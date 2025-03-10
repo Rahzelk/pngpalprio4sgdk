@@ -162,53 +162,39 @@ public class PngPalettePriorityEditor extends JFrame {
     //
     private void showInstructions() 
     {
-        String instructionsText = """
+        String instructionsText = 
+        "- - - - - - - - HOW TO USE IT ? - - - - - - - - - - - - - - - - \n\n" +
+        "1] Load an image\n" +
+        "   Note : the image must be an indexed PNG (8bpp / only first 16 colors used)\n\n" +
+        "2] Edit the priority and palette index via the grid mask and hotkeys (H/L and 0-4 keys) \n\n" +
+        "3] Save your mask (if you like to reuse it next time, it's not binded to the image file)\n\n" +
+        "4] Export Image : it will apply the mask pal & priority informations to the loaded image and save it as a new PNG file.\n\n\n" +
         
-        - - - - - - - - HOW TO USE IT ? - - - - - - - - - - - - - - - - 
-
-        1] Load an image
-            Note : the image must be an indexed PNG (8bpp / only first 16 colors used)
-            
-        2] Edit the priority and palette index via the grid mask and hotkeys (H/L and 0-4 keys) 
-
-        3] Save your mask (if you like to reuse it next time, it's not binded to the image file)
-
-        4] Export Image : it will apply the mask pal & priority informations to the loaded image andsave it as a new PNG file.
-
-
-        - - - - - - - CONTROLS & SHORTCUTS - - - - - - - - - - - - - - 
+        "- - - - - - - CONTROLS & SHORTCUTS - - - - - - - - - - - - - - \n\n" +
+        "* Zoom & Navigation:\n" +
+        "  - SHIFT + Mouse Wheel: Zoom in/out\n" +
+        "  - Arrow Keys: Move the view\n\n" +
         
-        * Zoom & Navigation:
-          - SHIFT + Mouse Wheel: Zoom in/out
-          - Arrow Keys: Move the view
+        "* Selection:\n" +
+        "  - Left Click & Drag: Select multiple tiles (lasso selection)\n" +
+        "  - CTRL + Left Click: Add multiple selection areas\n\n" +
         
-        * Selection:
-          - Left Click & Drag: Select multiple tiles (lasso selection)
-          - CTRL + Left Click: Add multiple selection areas
-
-        * Editing Tiles:
-          You can right-click on tiles to edit their properties,
-          But you may prefer directly use these hotkeys :
-           - H: Set selected tiles to Priority 1 (High)
-           - L: Set selected tiles to Priority 0 (Low)
-           - 0, 1, 2, 3: Change the palette index of selected tiles
-           
-           - CTRL+Z and CTRL+Y : undo/redo last priority or palette change
-           
-           
-
-        - - - - - - - BATCH MODE - - - - - - - - - - - - - - - - - - - 
-
-        Run the editor from the command line:
-           java -jar PPPE4SGDK.jar --b <image_path> <mask_path> <export_path>
-
-        The image must be an indexed PNG (8bpp / only first 16 colors used)
-        The mask file must be a valid .msk file, made previously using the GUI
+        "* Editing Tiles:\n" +
+        "  You can right-click on tiles to edit their properties,\n" +
+        "  But you may prefer directly use these hotkeys :\n" +
+        "   - H: Set selected tiles to Priority 1 (High)\n" +
+        "   - L: Set selected tiles to Priority 0 (Low)\n" +
+        "   - 0, 1, 2, 3: Change the palette index of selected tiles\n\n" +
+        "   - CTRL+Z and CTRL+Y : undo/redo last priority or palette change\n\n\n" +
         
-
-        Enjoy !
-        Rahzelk          
-        """;
+        "- - - - - - - BATCH MODE - - - - - - - - - - - - - - - - - - - \n\n" +
+        "Run the editor from the command line:\n" +
+        "   java -jar PPPE4SGDK.jar --b <image_path> <mask_path> <export_path>\n\n" +
+        "The image must be an indexed PNG (8bpp / only first 16 colors used)\n" +
+        "The mask file must be a valid .msk file, made previously using the GUI\n\n\n" +
+        
+        "Enjoy !\n" +
+        "Rahzelk";
 
         JTextArea textArea = new JTextArea(instructionsText);
         textArea.setEditable(false);

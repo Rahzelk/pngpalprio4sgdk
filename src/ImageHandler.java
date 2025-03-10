@@ -37,17 +37,21 @@ public class ImageHandler {
 
         switch(returnCode)
         {
-            case ImageHandler.ERR_IMAGE_NOT_INDEXED->
-            msg="Invalid Image : The image must be indexed (palette-based) ";
+            case ImageHandler.ERR_IMAGE_NOT_INDEXED :
+                msg="Invalid Image : The image must be indexed (palette-based) ";
+                break;
 
-            case ImageHandler.ERR_IMAGE_MORE_THAN_16_COLORS->
-            msg="Invalid Image : The image uses more than the first 16 colors of the palette ";
+            case ImageHandler.ERR_IMAGE_MORE_THAN_16_COLORS:
+                msg="Invalid Image : The image uses more than the first 16 colors of the palette ";
+                break;
 
-            case ImageHandler.ERR_IMAGE_NOT_8BPP->
-            msg="Invalid Image : The image must be 8bpp ";
+            case ImageHandler.ERR_IMAGE_NOT_8BPP:
+                msg="Invalid Image : The image must be 8bpp ";
+                break;
 
-            case ImageHandler.ERR_NO_IMAGE_NOR_MASK_LOADED_YET->
-            msg="No image or mask loaded.";
+            case ImageHandler.ERR_NO_IMAGE_NOR_MASK_LOADED_YET:
+                msg="No image or mask loaded.";
+                break;
         } 
         return msg; 
     }

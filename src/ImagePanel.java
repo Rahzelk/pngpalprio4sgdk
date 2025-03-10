@@ -716,70 +716,80 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
 
         switch (keyCode) 
         {
-            case KeyEvent.VK_Z -> { if (e.isControlDown()) undoLastAction(); }
-            case KeyEvent.VK_Y -> { if (e.isControlDown()) redoLastAction(); }
+            case KeyEvent.VK_Z : { if (e.isControlDown()) undoLastAction(); } break;
+            case KeyEvent.VK_Y : { if (e.isControlDown()) redoLastAction(); } break;
 
-            case KeyEvent.VK_LEFT -> viewPosition.x = Math.max(viewPosition.x - scrollAmount, 0);
-            case KeyEvent.VK_RIGHT -> viewPosition.x = Math.min(viewPosition.x + scrollAmount, getWidth() - viewport.getWidth());
-            case KeyEvent.VK_UP -> viewPosition.y = Math.max(viewPosition.y - scrollAmount, 0);
-            case KeyEvent.VK_DOWN -> viewPosition.y = Math.min(viewPosition.y + scrollAmount, getHeight() - viewport.getHeight());
+            case KeyEvent.VK_LEFT : viewPosition.x = Math.max(viewPosition.x - scrollAmount, 0);break;
+            case KeyEvent.VK_RIGHT : viewPosition.x = Math.min(viewPosition.x + scrollAmount, getWidth() - viewport.getWidth());break;
+            case KeyEvent.VK_UP : viewPosition.y = Math.max(viewPosition.y - scrollAmount, 0);break;
+            case KeyEvent.VK_DOWN : viewPosition.y = Math.min(viewPosition.y + scrollAmount, getHeight() - viewport.getHeight());break;
 
-            case KeyEvent.VK_H -> {
-                saveStateForUndo();
-                // Met toutes les TILEs sélectionnées en priorité haute (1)                
-                for (Point p : selectedTiles) {                    
-                    imageHandler.getMask().setTileProperties(p.x, p.y, imageHandler.getMask().getTilePalette(p.x, p.y), 1);
+            case KeyEvent.VK_H : {
+                    saveStateForUndo();
+                    // Met toutes les TILEs sélectionnées en priorité haute (1)                
+                    for (Point p : selectedTiles) {                    
+                        imageHandler.getMask().setTileProperties(p.x, p.y, imageHandler.getMask().getTilePalette(p.x, p.y), 1);
+                    }
                 }
-            }
+            break;
 
-            case KeyEvent.VK_L -> {
-                saveStateForUndo();
-                // Met toutes les TILEs sélectionnées en priorité basse (0)
-                for (Point p : selectedTiles) {
-                    imageHandler.getMask().setTileProperties(p.x, p.y, imageHandler.getMask().getTilePalette(p.x, p.y), 0);
+            case KeyEvent.VK_L : {
+                    saveStateForUndo();
+                    // Met toutes les TILEs sélectionnées en priorité basse (0)
+                    for (Point p : selectedTiles) {
+                        imageHandler.getMask().setTileProperties(p.x, p.y, imageHandler.getMask().getTilePalette(p.x, p.y), 0);
+                    }
                 }
-            }
+            break;
 
-            case KeyEvent.VK_0, KeyEvent.VK_NUMPAD0 -> {
-                saveStateForUndo();
-                // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
-                int paletteIndex = 0;
+            case KeyEvent.VK_0:
+            case KeyEvent.VK_NUMPAD0 : {
+                    saveStateForUndo();
+                    // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
+                    int paletteIndex = 0;
 
-                for (Point p : selectedTiles) {
-                    imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
-                }
-            }  
+                    for (Point p : selectedTiles) {
+                        imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
+                    }
+                }  
+            break;
 
-            case KeyEvent.VK_1,  KeyEvent.VK_NUMPAD1 -> {
-                saveStateForUndo();
-                // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
-                int paletteIndex = 1;
+            case KeyEvent.VK_1:
+            case KeyEvent.VK_NUMPAD1 : {
+                    saveStateForUndo();
+                    // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
+                    int paletteIndex = 1;
 
-                for (Point p : selectedTiles) {
-                    imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
-                }
-            }  
+                    for (Point p : selectedTiles) {
+                        imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
+                    }
+                }  
+            break;
 
-            case KeyEvent.VK_2,  KeyEvent.VK_NUMPAD2 -> {
-                saveStateForUndo();
-                // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
-                int paletteIndex = 2;
+            case KeyEvent.VK_2:
+            case KeyEvent.VK_NUMPAD2 : {
+                    saveStateForUndo();
+                    // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
+                    int paletteIndex = 2;
 
-                for (Point p : selectedTiles) {
-                    imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
-                }
-            }              
+                    for (Point p : selectedTiles) {
+                        imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
+                    }
+                }        
+            break;      
 
             
-            case KeyEvent.VK_3,  KeyEvent.VK_NUMPAD3 -> {
-                saveStateForUndo();
-                // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
-                int paletteIndex = 3;
+            case KeyEvent.VK_3:
+            case KeyEvent.VK_NUMPAD3 : {
+                    saveStateForUndo();
+                    // Modifie la palette de toutes les TILEs sélectionnées (0 à 3)
+                    int paletteIndex = 3;
 
-                for (Point p : selectedTiles) {
-                    imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
-                }
-            }     
+                    for (Point p : selectedTiles) {
+                        imageHandler.getMask().setTileProperties(p.x, p.y, paletteIndex, imageHandler.getMask().getTilePriority(p.x, p.y));
+                    }
+                }     
+            break;
 
         }
         bufferNeedsUpdate = true;
