@@ -10,6 +10,10 @@ With PPP Editor, you can:
 ✅ Export the final image with the applied mask (=palette and priority encoding).<br/>
 ✅ Use a batch mode for automated processing via the command line.<br/>
 
+## Known issues
+The tool is rather slow with bigger image... got to improve this indeed !
+PNG above 1024x1024 tends to be laggy...and higher resolution may become unusable.
+
 
 ## Installation & Usage
 
