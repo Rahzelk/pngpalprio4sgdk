@@ -12,14 +12,20 @@ public class PngPalettePriorityEditor extends JFrame {
 
     private final JMenu imageMenu;
     private final JMenu maskMenu;
-    private final JMenu optionsMenu;
     private final JMenu viewMenu;
     
     private boolean showGrid = true;
     private boolean showPaletteIndex = true;
     private boolean viewPaletteZero = false;
     
+    private JCheckBoxMenuItem viewPaletteItem;
     
+    public void toggleViewPaletteItem(boolean enable)
+    {
+        viewPaletteItem.setEnabled(enable);
+    }
+
+
     public PngPalettePriorityEditor()
     {
         setTitle("PNG Palette and Priority Editor for SGDK");
@@ -39,7 +45,7 @@ public class PngPalettePriorityEditor extends JFrame {
 
         // this change listener prevent too much repaint, making the app being responsive
         scrollPane.getViewport().addChangeListener(new ChangeListener() {
-            private final Timer timer = new Timer(50, e -> imagePanel.doScrollbarUpdate());
+            private final Timer timer = new Timer(25, e -> imagePanel.doScrollbarUpdate());
 
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -74,17 +80,7 @@ public class PngPalettePriorityEditor extends JFrame {
         maskMenu.add(saveMask);
         saveMask.addActionListener(e -> imagePanel.saveMask());
 
-
-        // MENU "Options"
-        optionsMenu = new JMenu("Options");
-        optionsMenu.setEnabled(false);
-        menuBar.add(optionsMenu);
-        JMenuItem maskColorsItem = new JMenuItem("Mask Colors...");
-        maskColorsItem.addActionListener(e -> imagePanel.openMaskColorSettings());
-        
-        optionsMenu.add(maskColorsItem);
-
-        
+       
         // MENU "View"
         viewMenu = new JMenu("View");
         viewMenu.setEnabled(false);
@@ -96,7 +92,7 @@ public class PngPalettePriorityEditor extends JFrame {
         });
 
         // option "View Palette Index Number"
-        JCheckBoxMenuItem viewPaletteItem = new JCheckBoxMenuItem("View Palette Index", showPaletteIndex);
+        viewPaletteItem = new JCheckBoxMenuItem("View Palette Index", showPaletteIndex);
         viewPaletteItem.addActionListener(e -> {
             showPaletteIndex = viewPaletteItem.isSelected();
             imagePanel.repaint();
@@ -109,11 +105,17 @@ public class PngPalettePriorityEditor extends JFrame {
             imagePanel.repaint();
         });
 
+
+        JMenuItem maskColorsItem = new JMenuItem("Mask Colors...");
+        maskColorsItem.addActionListener(e -> imagePanel.openMaskColorSettings());
+        
         // add options to "View"
         viewMenu.add(viewGridItem);
         viewMenu.add(viewPaletteItem);
         viewMenu.add(viewPaletteZeroItem);
+        viewMenu.add(maskColorsItem);
 
+        
         menuBar.add(viewMenu);
 
     
@@ -152,7 +154,6 @@ public class PngPalettePriorityEditor extends JFrame {
     public void allowMenuChoice()
     {
         maskMenu.setEnabled(true);
-        optionsMenu.setEnabled(true);
         viewMenu.setEnabled(true);
 
         JMenuItem exportImage = new JMenuItem("Export Image");
@@ -196,7 +197,8 @@ public class PngPalettePriorityEditor extends JFrame {
            - L: Set selected tiles to Priority 0 (Low)
            - 0, 1, 2, 3: Change the palette index of selected tiles
            
-           - CTRL+Z : undo last priority or palette change
+           - CTRL+Z and CTRL+Y : undo/redo last priority or palette change
+           
            
 
         - - - - - - - BATCH MODE - - - - - - - - - - - - - - - - - - - 
@@ -226,17 +228,21 @@ public class PngPalettePriorityEditor extends JFrame {
 
     
 
-    // GETTER
+    // GETTER & SETTERS
     //
-    public boolean showGrid() {
+    public boolean getShowGrid() {
         return showGrid;
     }
 
-    public boolean showPaletteIndex() {
+    public boolean getShowPaletteIndex() {
         return showPaletteIndex;
     }
+    public void setShowPaletteIndex(boolean enable) {
+        showPaletteIndex = enable;
+        viewPaletteItem.setSelected(enable);
+    }
 
-    public boolean viewPaletteZero() {
+    public boolean getViewPaletteZero() {
         return viewPaletteZero;
     }
 
@@ -248,10 +254,20 @@ public class PngPalettePriorityEditor extends JFrame {
     @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) 
     {
-        if(!args[0].equals("--b")) 
-         SwingUtilities.invokeLater(() -> new PngPalettePriorityEditor().setVisible(true));
+        if(args.length == 0 || !args[0].equals("--b")) 
+        {
+            System.out.println("GUI mode detected...");
+            SwingUtilities.invokeLater(() -> new PngPalettePriorityEditor().setVisible(true));
+        }
+        else if(args[0].equals("--b"))
+        {
+            System.out.println("Batch mode detected...");
+            batchMode(args);
+        }
+    }
 
-        System.out.println("Batch mode detected...");
+    private static void batchMode(String[] args)
+    {
         if (args.length < 4) 
         {
             System.out.println("Missing parameters : please check the syntax below ");
@@ -311,6 +327,4 @@ public class PngPalettePriorityEditor extends JFrame {
         }
         System.exit(0);
     }
-
-
 }

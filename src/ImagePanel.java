@@ -25,10 +25,13 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     private boolean bufferNeedsUpdate = true;
 
     private final Stack<Mask> undoStack = new Stack<>();
+    private final Stack<Mask> redoStack = new Stack<>();
+    
     private static final int UNDO_LIMIT = 10;
 
     private MessageHandler messageHandler = null;
     boolean isCtrlPressed = false;
+    boolean showPaletteIndexUserValue;
 
     private  Color GRID_BORDER_COLOR;
     private  Color GRID_HIGH_PRIORITY_BORDER_COLOR;
@@ -54,12 +57,12 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
             @Override
             public void mousePressed(MouseEvent e) {
 
-                if (e.getButton() == MouseEvent.BUTTON1) { // Left Click (Start Selection)
+                if (e.getButton() == MouseEvent.BUTTON1) { // Left Click (Start Lasso Selection)
                     isCtrlPressed = e.isControlDown();
                     selectionStart = e.getPoint();
                     selectionEnd = selectionStart;
 
-                } else if (e.getButton() == MouseEvent.BUTTON3) { // Right Click (Open Properties)
+                } else if (e.getButton() == MouseEvent.BUTTON3) { // Right Click (Open Properties Dialog)
                     openTilePropertiesDialog();
                 }
             }
@@ -68,7 +71,7 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (selectionStart != null) {
-                    applySelection();
+                    doLassoSelection(); // End the Lasso selection 
                 }
             }
         });
@@ -78,62 +81,49 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
-                updateCursorPosition(e.getX(), e.getY());
+                updateMousePointerCoordsInfo();
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                updateCursorPosition(e.getX(), e.getY());
+                updateMousePointerCoordsInfo();
 
                 if (selectionStart != null) {
                     selectionEnd = e.getPoint();
-                    updateSelectionStatus(getCurrentCursorText());
-                    repaint();  //update selecting rectangle
+                    updateSelectionStatus();
+                    repaint();  //update lasso rectangle
                 }
             }
         });
 
 
+
         zoom = 1;
         AppFileHandler.loadConfig(); 
         updateColors(AppFileHandler.loadColorsFromConfig());
+        
         imageHandler = new ImageHandler();
         setBackground(Color.GRAY);
-        setPreferredSize(new Dimension(800, 600));       
-
         setFocusable(true);
         requestFocusInWindow();
-
     }
     
-    private void updateCursorPosition(int x, int y) {
+
+    private void updateMousePointerCoordsInfo() {
         
         if(!assetsLoaded() || zoom<1)  return;
-
-         // Récupérer les valeurs de scrolling
-        JViewport viewport = (JViewport) getParent();
-        Point viewPosition = viewport.getViewPosition();
-        
-        // Calculer la position en pixel réelle dans l'image
-        int pixelX = (int) ((x + viewPosition.x) / zoom);
-        int pixelY = (int) ((y + viewPosition.y) / zoom);
-        
-        int tileSize = (int)(ImageHandler.TILE_SIZE * zoom);
-
-        int tileX = x / tileSize;
-        int tileY = y / tileSize;
     
-        String cursorText = String.format("Cursor: px(%d,%d) | tile(%d, %d)", pixelX, pixelY, tileX, tileY);
+        String cursorText = getMousePointerCoordsToText();
     
         // Conserver l'affichage de la sélection si elle existe
         if (selectedTiles != null && !selectedTiles.isEmpty()) {
-            updateSelectionStatus(cursorText);
+            updateSelectionStatus();
         } else {
             mainWindow.updateStatusBar(cursorText);
         }
     }
 
-    private void updateSelectionStatus(String cursorText) {
+    private void updateSelectionStatus() {
         if (!assetsLoaded()) return;
 
         if(zoom<1)  
@@ -142,17 +132,19 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
             return;
         }
 
+        String mousePointerCoords = getMousePointerCoordsToText();
+
         if (selectedTiles == null || selectedTiles.isEmpty()) {
-            mainWindow.updateStatusBar(cursorText);
+            mainWindow.updateStatusBar(mousePointerCoords);
             return;
         }
 
-        Rectangle bounds = getSelectionBounds();
+        Rectangle bounds = getLassoSelectionBounds();
     
         if (bounds != null) {
             mainWindow.updateStatusBar(String.format(
                 "%s | Selection: (%d, %d) → (%d, %d) | %d x %d tiles",
-                cursorText, bounds.x, bounds.y, 
+                mousePointerCoords, bounds.x, bounds.y, 
                 bounds.x + bounds.width - 1, bounds.y + bounds.height - 1,
                 bounds.width, bounds.height
             ));
@@ -160,20 +152,19 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         else if (selectedTiles.size() == 1) {
             Point tile =(Point)  selectedTiles.toArray()[0];
             mainWindow.updateStatusBar(
-                String.format("%s | Tile Selected : (%d, %d) | 1 tile", cursorText, tile.x, tile.y));
+                String.format("%s | Tile Selected : (%d, %d) | 1 tile", mousePointerCoords, tile.x, tile.y));
         } else {
             mainWindow.updateStatusBar(
-                String.format("%s | Multi-selection: %d tiles selected", cursorText, selectedTiles.size()));
+                String.format("%s | Multi-selection: %d tiles selected", mousePointerCoords, selectedTiles.size()));
         }
     }    
 
 
-    private Rectangle getSelectionBounds() {
+    private Rectangle getLassoSelectionBounds() {
         if (selectedTiles == null || selectedTiles.isEmpty()) {
             return null;
         }
     
-        // Trouver les min/max X et Y
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
     
@@ -184,7 +175,7 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
             if (tile.y > maxY) maxY = tile.y;
         }
     
-        // Vérifier si la sélection est un rectangle complet
+        // check if selection is a full rectangle
         int width = (maxX - minX) + 1;
         int height = (maxY - minY) + 1;
     
@@ -192,17 +183,18 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
             return new Rectangle(minX, minY, width, height);
         }
     
-        return null; // Pas un rectangle parfait
+        return null; // not a rectangle, don't return bounds
     }
 
-    // Récupérer la position actuelle du curseur
-    private String getCurrentCursorText() {
+
+    // Get coords info (px, tiles) at the cursor position
+    private String getMousePointerCoordsToText() {
         if (!assetsLoaded()) return "";
 
         if(zoom<1)  
         {
             return "unavailable at this zoom level";
-        }
+        }       
         
         PointerInfo pointerInfo = MouseInfo.getPointerInfo();
         Point location = pointerInfo.getLocation();
@@ -212,11 +204,19 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         int tileX = location.x  / tileSize;
         int tileY = location.y / tileSize;
     
-        return String.format("Cursor: (%d px, %d px) | (%d tile, %d tile)", location.x, location.y, tileX, tileY);
+        // Récupérer les valeurs de scrolling
+        JViewport viewport = (JViewport) getParent();
+        Point viewPosition = viewport.getViewPosition();
+        
+        // Calculer la position en pixel réelle dans l'image
+        int pixelX = (int) ((location.x  + viewPosition.x) / zoom);
+        int pixelY = (int) ((location.y  + viewPosition.y) / zoom);
+        
+        return String.format("Cursor: (%d px, %d px) | (%d tile, %d tile)", pixelX, pixelY, tileX, tileY);
     }
 
 
-    private void applySelection() {
+    private void doLassoSelection() {
        
         if (selectionStart == null || selectionEnd == null) return;
     
@@ -227,7 +227,7 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         int endX = Math.max(selectionStart.x, selectionEnd.x) / tileSize;
         int endY = Math.max(selectionStart.y, selectionEnd.y) / tileSize;
     
-        // Si CTRL n'est pas enfoncé, on efface la sélection existante
+        // unless CTRL is pressed, we clear previous selection
         if (!isCtrlPressed) {
             selectedTiles.clear();
         }
@@ -237,7 +237,7 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
                 selectedTiles.add(new Point(x, y));
             }
         }
-        updateSelectionStatus( getCurrentCursorText() );
+        updateSelectionStatus();
         selectionStart = null;
         selectionEnd = null;
         bufferNeedsUpdate = true;
@@ -434,7 +434,7 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
                     int paletteIndex = mask.getTilePalette(x, y);
                     int priority = mask.getTilePriority(x, y);
 
-                    if(mainWindow.showGrid())
+                    if(mainWindow.getShowGrid())
                     {
                         g2d.setColor(GRID_BORDER_COLOR);
                         g2d.drawRect(drawX, drawY, tileSize, tileSize);
@@ -452,17 +452,19 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
                     }
 
 
+                    if (paletteIndex >0 || (paletteIndex == 0 && mainWindow.getViewPaletteZero()))
+                    {
+                        // Coloration des cases en fonction de la palette
+                        g2d.setColor(GRID_PALETTE_INDEX_COLORS_TILE[paletteIndex]);
+                        g2d.fillRect(drawX, drawY, tileSize, tileSize);
+                    }
 
-                    // Coloration des cases en fonction de la palette
-                    g2d.setColor(GRID_PALETTE_INDEX_COLORS_TILE[paletteIndex]);
-                    g2d.fillRect(drawX, drawY, tileSize, tileSize);
-                    
-                    if (zoom >= 1 && 
-                    (   (paletteIndex > 0 && mainWindow.showPaletteIndex())
-                     || (paletteIndex == 0 && mainWindow.viewPaletteZero())  ) 
+                    if (
+                    (   (paletteIndex > 0 && mainWindow.getShowPaletteIndex())
+                     || (paletteIndex == 0 && mainWindow.getViewPaletteZero() && mainWindow.getShowPaletteIndex()) ) 
                     )
                     {
-                        // Affichage du numéro de palette avec contour noir
+                        // Affichage du numéro de palette 
                         String paletteText = String.valueOf(paletteIndex);
 
                         int textX = drawX + textXCenter;
@@ -481,6 +483,7 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     private void openTilePropertiesDialog() 
     {
         if (!assetsLoaded()) return;
+        if(selectedTiles.isEmpty()) return;
     
         // Get the first selected tile
         Point firstTile = selectedTiles.iterator().next();  
@@ -632,22 +635,34 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         if (zoom < 6.0) { // max x6
             zoom += 0.5;
         }
+        if(zoom > 0.5)
+        {
+            mainWindow.toggleViewPaletteItem(true);
+            mainWindow.setShowPaletteIndex(showPaletteIndexUserValue);
+        }
     }
     
     private void zoomOut() {
         if (zoom > 0.5) { // Min x0.5
             zoom -= 0.5;
         }
+        if(zoom < 1)
+        {
+            mainWindow.toggleViewPaletteItem(false);
+            showPaletteIndexUserValue = mainWindow.getShowPaletteIndex();
+            mainWindow.setShowPaletteIndex(false);
+        }
     }
 
 
-    public Mask getUndoStack()
+    public Mask getMaskStack(Stack<Mask> stack)
     {
-        if (!undoStack.isEmpty()) 
-            return undoStack.pop();
+        if (!stack.isEmpty()) 
+            return stack.pop();
         else
             return null;
     }
+
 
     public void saveStateForUndo() {
         // Copier le mask actuel pour l'empiler
@@ -663,7 +678,8 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     }   
     
     private void undoLastAction() {
-        Mask previousMask = getUndoStack();
+        redoStack.push(new Mask(imageHandler.getMask()));
+        Mask previousMask = getMaskStack(undoStack);
         if (previousMask!=null) 
         {
             imageHandler.setMask(previousMask);
@@ -671,6 +687,17 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
             selectedTiles.clear();
         }
     }
+
+    private void redoLastAction() {
+        undoStack.push(new Mask(imageHandler.getMask()));
+        Mask nextMask = getMaskStack(redoStack);
+        if (nextMask!=null) 
+        {
+            imageHandler.setMask(nextMask);
+            repaint();
+            selectedTiles.clear();
+        }
+    }    
 
 
     public void handleKeyPress(KeyEvent e) 
@@ -687,8 +714,8 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
 
         switch (keyCode) 
         {
-
             case KeyEvent.VK_Z -> { if (e.isControlDown()) undoLastAction(); }
+            case KeyEvent.VK_Y -> { if (e.isControlDown()) redoLastAction(); }
 
             case KeyEvent.VK_LEFT -> viewPosition.x = Math.max(viewPosition.x - scrollAmount, 0);
             case KeyEvent.VK_RIGHT -> viewPosition.x = Math.min(viewPosition.x + scrollAmount, getWidth() - viewport.getWidth());
