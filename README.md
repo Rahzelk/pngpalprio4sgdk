@@ -28,8 +28,7 @@ java -jar PPPE4SGDK.jar --b bgb.png mask.msk bgb_palprio.png
 
 
 ## Screenshots <br>
-(Add screenshots of the interface, selection tools, and exported images here.)
-
+![screenshot](app_screenshot1.png)
 
 ## Features :
 
@@ -48,7 +47,7 @@ L → Set priority Low (0)<br/>
 0, 1, 2, 3 → Change palette index of selected tiles<br/>
 SHIFT + Mouse Wheel → zooming<br/>
 Arrow Keys → Scroll image<br/>
-CTRL+Z → undo<br/>
+CTRL+Z / CTRL+Y → undo / redo<br/>
 
 
 ## License <br>
