@@ -30,8 +30,8 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
     private static final int UNDO_LIMIT = 10;
 
     private MessageHandler messageHandler = null;
-    boolean isCtrlPressed = false;
-    boolean showPaletteIndexUserValue;
+    private boolean isCtrlPressed = false;
+    private boolean showPaletteIndexUserValue;
 
     private  Color GRID_BORDER_COLOR;
     private  Color GRID_HIGH_PRIORITY_BORDER_COLOR;
@@ -101,7 +101,8 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         zoom = 1;
         AppFileHandler.loadConfig(); 
         updateColors(AppFileHandler.loadColorsFromConfig());
-        
+
+
         imageHandler = new ImageHandler();
         setBackground(Color.GRAY);
         setFocusable(true);
@@ -632,24 +633,25 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
  
 
     private void zoomIn() {
-        if (zoom < 6.0) { // max x6
-            zoom += 0.5;
-        }
-        if(zoom > 0.5)
-        {
+        if(zoom < 1)
+        {            
             mainWindow.toggleViewPaletteItem(true);
             mainWindow.setShowPaletteIndex(showPaletteIndexUserValue);
+        }        
+        if (zoom < 6.0) { // max x6
+            zoom += 0.5;
+            showPaletteIndexUserValue = mainWindow.getShowPaletteIndex();
         }
     }
     
     private void zoomOut() {
         if (zoom > 0.5) { // Min x0.5
             zoom -= 0.5;
+            showPaletteIndexUserValue = mainWindow.getShowPaletteIndex();
         }
         if(zoom < 1)
         {
             mainWindow.toggleViewPaletteItem(false);
-            showPaletteIndexUserValue = mainWindow.getShowPaletteIndex();
             mainWindow.setShowPaletteIndex(false);
         }
     }

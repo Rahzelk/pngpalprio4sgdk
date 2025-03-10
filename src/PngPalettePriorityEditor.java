@@ -20,15 +20,11 @@ public class PngPalettePriorityEditor extends JFrame {
     
     private JCheckBoxMenuItem viewPaletteItem;
     
-    public void toggleViewPaletteItem(boolean enable)
-    {
-        viewPaletteItem.setEnabled(enable);
-    }
 
 
     public PngPalettePriorityEditor()
     {
-        setTitle("PNG Palette and Priority Editor for SGDK");
+        setTitle("PNG Palette and Priority Editor for SGDK v0.5b");
         setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -241,7 +237,10 @@ public class PngPalettePriorityEditor extends JFrame {
         showPaletteIndex = enable;
         viewPaletteItem.setSelected(enable);
     }
-
+    public void toggleViewPaletteItem(boolean enable)
+    {
+        viewPaletteItem.setEnabled(enable);
+    }
     public boolean getViewPaletteZero() {
         return viewPaletteZero;
     }
