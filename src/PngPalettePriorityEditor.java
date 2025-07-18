@@ -24,7 +24,7 @@ public class PngPalettePriorityEditor extends JFrame {
 
     public PngPalettePriorityEditor()
     {
-        setTitle("PNG Palette and Priority Editor for SGDK v0.5b");
+        setTitle("PNG Palette and Priority Editor for SGDK v0.6");
         setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
