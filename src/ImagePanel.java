@@ -805,12 +805,14 @@ public class ImagePanel extends JPanel implements MouseWheelListener  {
         JColorChooser colorChooser = new JColorChooser(initialColor);
     
         // Supprime tous les onglets sauf "RGB"
-        AbstractColorChooserPanel[] panels = colorChooser.getChooserPanels();
-        for (AbstractColorChooserPanel panel : panels) {
-            if (!panel.getDisplayName().equals("RGB")) {
-                colorChooser.removeChooserPanel(panel);
+        // Retarde la suppression des panels à un moment sûr
+        SwingUtilities.invokeLater(() -> {
+            for (AbstractColorChooserPanel panel : colorChooser.getChooserPanels()) {
+                if (!panel.getDisplayName().equals("RVB") && !panel.getDisplayName().equals("RGB")) {
+                    colorChooser.removeChooserPanel(panel);
+                }
             }
-        }
+        });
     
         // Crée un JDialog pour afficher le sélecteur
         JDialog dialog = JColorChooser.createDialog(

@@ -147,16 +147,25 @@ public class PngPalettePriorityEditor extends JFrame {
 
     // UI  
     // enable editing menu only after user load an image
-    public void allowMenuChoice()
-    {
+    public void allowMenuChoice() {
         maskMenu.setEnabled(true);
         viewMenu.setEnabled(true);
-
-        JMenuItem exportImage = new JMenuItem("Export Image");
-        exportImage.addActionListener(e -> imagePanel.exportImage());
-        imageMenu.add(exportImage);
+    
+        boolean exportExists = false;
+        for (int i = 0; i < imageMenu.getItemCount(); i++) {
+            JMenuItem item = imageMenu.getItem(i);
+            if (item != null && "Export Image".equals(item.getText())) {
+                exportExists = true;
+                break;
+            }
+        }
+    
+        if (!exportExists) {
+            JMenuItem exportImage = new JMenuItem("Export Image");
+            exportImage.addActionListener(e -> imagePanel.exportImage());
+            imageMenu.add(exportImage);
+        }
     }
-
 
     // HELP WINDOW
     //
